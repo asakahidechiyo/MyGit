@@ -1,4 +1,6 @@
 import random
+import time
+from collections import deque
 
 
 class SeqList:
@@ -182,6 +184,14 @@ class LinkList:
         right = self._mergeSortRecursiveD(rightHalf)
         return MergeLinkListD(left, right)
 
+    def getLength(self):
+        nCnt = 0
+        p = self.head.next
+        while p:
+            p = p.next
+            nCnt += 1
+        return nCnt
+
     def display(self):
         print("head", end="")
         p = self.head.next
@@ -263,8 +273,128 @@ def MergeLinkListD(la, lb):
     return dummy.next
 
 
+class TreeNode:
+    def __init__(self, data, lchild=None, rchild=None):
+        self.data = data
+        self.lchild = lchild
+        self.rchild = rchild
+
+
+class BiTree:
+    def __init__(self):
+        self.root = TreeNode(None)
+        self.maxIndex = 0
+
+    def createBiTree(self, vals):
+        if len(vals) == 0:
+            return None
+        if vals[0] != "#":
+            node = TreeNode(vals[0])
+            if self.maxIndex == 0:
+                self.root = node
+            self.maxIndex += 1
+            vals.pop(0)
+            node.lchild = self.createBiTree(vals)
+            node.rchild = self.createBiTree(vals)
+            return node
+        else:
+            vals.pop(0)
+            return None
+
+    def preOrderTraverse(self, t):
+        if t:
+            print(f"{t.data}", end=" ")
+            self.preOrderTraverse(t.lchild)
+            self.preOrderTraverse(t.rchild)
+
+    def inOrderTraverse(self, t):
+        if t:
+            self.inOrderTraverse(t.lchild)
+            print(f"{t.data}", end=" ")
+            self.inOrderTraverse(t.rchild)
+
+    def postOrderTraverse(self, t):
+        if t:
+            self.postOrderTraverse(t.lchild)
+            self.postOrderTraverse(t.rchild)
+            print(f"{t.data}", end=" ")
+
+    def levelTraverse(self, t):
+        if t is None:
+            return
+        queue = []
+        queue.append(t)
+        while queue:
+            p = queue.pop(0)
+            print(f"{p.data}", end=" ")
+            if p.lchild:
+                queue.append(p.lchild)
+            if p.rchild:
+                queue.append(p.rchild)
+        print()
+
+    def locateAndPrintPath(self, t, val):
+        if t is None:
+            print("Empty tree")
+            return False
+        queue = []
+        queue.append(t)
+        while queue:
+            p = queue.pop(0)
+            print(f"{p.data}", end=" ")
+            if p.lchild:
+                queue.append(p.lchild)
+            if p.rchild:
+                queue.append(p.rchild)
+            if p.lchild is None and p.rchild is None:
+                print(f"\nleaf node reached, which is {p.data}")
+            if p.data == val:
+                print(f"\n{p.data} found")
+                return True
+        return False
+
+    def countLeafNode(self, t):
+        if t is None:
+            print("Empty tree")
+            return 0
+        if t.lchild is None and t.rchild is None:
+            return 1
+        return self.countLeafNode(t.lchild) + self.countLeafNode(t.rchild)
+
+    def createBiTreeLevelOrder(self, vals):
+        if len(vals) == 0 or vals[0] == "#" or vals[0] is None:
+            self.root = None
+            return None
+        root = TreeNode(vals[0])
+        self.root = root
+        queue = deque([root])
+        i = 1
+        while queue and i < len(vals):
+            cur = queue.popleft()
+            if i < len(vals) and vals[i] is not None:
+                if vals[i] != "#":
+                    cur.lchild = TreeNode(vals[i])
+                    queue.append(cur.lchild)
+                i += 1
+            if i < len(vals) and vals[i] is not None:
+                if vals[i] != "#":
+                    cur.rchild = TreeNode(vals[i])
+                    queue.append(cur.rchild)
+                i += 1
+        return root
+
+
+def executionTime(func, *args, **kwargs):
+    s = time.perf_counter()
+    res = func(*args, **kwargs)
+    e = time.perf_counter()
+    duration = (e - s) * 1000
+    print(f"Execution time: {duration:.2f} ms")
+    return res
+
+
 def main():
-    op = input("Enter s for seqlist, enter l for linklist:")
+    op = input("Enter s for seqlist, enter l for linklist, enter t for bitree:")
     if op.lower() == "s":
         initLength = input("Enter init data, which is the MAXSIZE of SeqList:")
         myList = SeqList(int(initLength))
@@ -275,7 +405,7 @@ def main():
         iInsertIndex, nValue = rawInput.split()
         myList.insert(int(iInsertIndex), int(nValue))
         myList.display()
-        input("请按回车继续...")
+        input("Enter to end")
     elif op.lower() == "l":
         llA = LinkList()
         for i in range(100):
@@ -284,7 +414,44 @@ def main():
         llA.display()
         llA.mergeSortD()
         llA.display()
-        input("请按回车继续...")
+        input("Enter to end")
+    elif op.lower() == "t":
+        myTree = BiTree()
+        vals = []
+        op = input("p for pre-order construction, l for level-order construction:")
+        if op.lower() == "p":
+            print(
+                "Input vals for bitree in pre-order(None node must be included):",
+                end="",
+            )
+            rawInput = input()
+            rawInput = list(rawInput)
+            while rawInput:
+                vals.append(rawInput.pop(0))
+            myTree.createBiTree(vals)
+            myTree.preOrderTraverse(myTree.root)
+            print()
+            myTree.levelTraverse(myTree.root)
+            # myTree.locateAndPrintPath(myTree.root, "E")
+            executionTime(myTree.locateAndPrintPath, myTree.root, "E")
+            print(f"{myTree.countLeafNode(myTree.root)}")
+        elif op.lower() == "l":
+            print(
+                "Input vals for bitree in level-order(None node must be included):",
+                end="",
+            )
+            rawInput = input()
+            rawInput = list(rawInput)
+            while rawInput:
+                vals.append(rawInput.pop(0))
+            myTree.createBiTreeLevelOrder(vals)
+            myTree.preOrderTraverse(myTree.root)
+            print()
+            myTree.levelTraverse(myTree.root)
+            # myTree.locateAndPrintPath(myTree.root, "E")
+            executionTime(myTree.locateAndPrintPath, myTree.root, "E")
+            print(f"{myTree.countLeafNode(myTree.root)}")
+        input("Enter to end")
     else:
         raise SyntaxError("Not a valid op")
 
